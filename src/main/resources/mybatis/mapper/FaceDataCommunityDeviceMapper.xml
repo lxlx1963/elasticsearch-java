@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinchao.data.dao.FaceDataCommunityDeviceMapper">
+    <!--省终端数结果集-->
+    <resultMap id="ProvinceDeviceNumDTOResultMap" type="com.xinchao.data.model.dto.ProvinceDeviceNumDTO">
+        <result column="province" jdbcType="VARCHAR" property="province"/>
+        <result column="device_num" jdbcType="INTEGER" property="deviceNum"/>
+    </resultMap>
+
+    <!--小区终端数结果集-->
+    <resultMap id="CommunityDeviceNumResultMap" type="com.xinchao.data.model.dto.CommunityDeviceNumDTO">
+        <result column="community" jdbcType="VARCHAR" property="community"/>
+        <result column="device_num" jdbcType="INTEGER" property="deviceNum"/>
+    </resultMap>
+
+    <!--插入数据-->
+    <insert id="insertFaceDataCommunityDevice" parameterType="com.xinchao.data.model.FaceDataCommunityDevice">
+        insert into frp_face_data_community_device(date, community, city, province, device_code, add_time)
+        values
+        (
+            #{faceDataCommunityDevice.date},#{faceDataCommunityDevice.community},
+            #{faceDataCommunityDevice.city},#{faceDataCommunityDevice.province},
+            #{faceDataCommunityDevice.deviceCode},#{faceDataCommunityDevice.addTime}
+        )
+    </insert>
+
+    <!--批量插入数据-->
+    <insert id="insertFaceDataCommunityDeviceBatch" parameterType="java.util.List">
+        insert into frp_face_data_community_device(date, community, city, province, device_code, add_time)
+        values
+        <foreach collection="faceDataCommunityDeviceList" item="faceDataCommunityDevice" index="index" separator=",">
+            (
+                #{faceDataCommunityDevice.date},#{faceDataCommunityDevice.community},
+                #{faceDataCommunityDevice.city},#{faceDataCommunityDevice.province},
+                #{faceDataCommunityDevice.deviceCode},#{faceDataCommunityDevice.addTime}
+            )
+        </foreach>
+    </insert>
+
+    <!--获取小区点位数-->
+    <select id="countCommnuity" resultType="java.lang.Integer">
+        select
+        count(temp.device_code)
+        from
+        (
+            select device_code from frp_face_data_community_device
+            where date in
+            (
+                <foreach collection="dateList" item="date" index="index" separator=",">
+                    #{date,jdbcType=VARCHAR}
+                </foreach>
+            )
+            and community = #{community,jdbcType=VARCHAR} group by device_code
+        ) temp
+    </select>
+
+    <!--获取省终端数量列表-->
+    <select id="listProvinceDeviceNumDTO" resultMap="ProvinceDeviceNumDTOResultMap">
+        select tt.province,count(tt.device_code) as device_num from (select province,device_code from frp_face_data_community_device where date = #{date} group by province,device_code) tt group by tt.province
+    </select>
+
+    <!-- 获取终端编码列表 -->
+    <select id="listDeviceCode" resultType="java.lang.String">
+        select device_code from frp_face_data_community_device where date = #{date} group by device_code
+    </select>
+
+    <!-- 获取城市列表 -->
+    <select id="listCity" resultType="java.lang.String">
+        select city from frp_face_data_community_device where date = #{date} group by city
+    </select>
+
+    <!-- 获取小区对应的终端数 -->
+    <select id="listCommunityDeviceNum" resultMap="CommunityDeviceNumResultMap">
+        select tmp.community as community,count(tmp.device_code) as device_num
+        from
+        (
+            select community,device_code
+            from frp_face_data_community_device
+            <where>
+                <if test="dateList != null">
+                    date in
+                    (
+                    <foreach collection="dateList" item="date" index="index" separator=",">
+                        #{date,jdbcType=VARCHAR}
+                    </foreach>
+                    )
+                </if>
+                <if test="communityList != null">
+                    and community in
+                    (
+                    <foreach collection="communityList" item="community" index="index" separator=",">
+                        #{community,jdbcType=VARCHAR}
+                    </foreach>
+                    )
+                </if>
+            </where>
+            group by community,device_code
+        ) tmp
+        group by tmp.community;
+    </select>
+</mapper>

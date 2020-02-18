@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinchao.data.dao.FaceDataCommunityTimeMapper">
+    <!--人数人次时间结果集-->
+    <resultMap id="PeopleNumTimeTimeResultMap" type="com.xinchao.data.model.dto.PeopleNumTimeTimeDTO">
+        <result column="time" jdbcType="VARCHAR" property="time"/>
+        <result column="people_num" jdbcType="INTEGER" property="peopleNum"/>
+        <result column="people_time" jdbcType="INTEGER" property="peopleTime"/>
+    </resultMap>
+
+    <!--插入数据-->
+    <insert id="insertFaceDataCommunityTime" parameterType="com.xinchao.data.model.FaceDataCommunityTime">
+        insert into frp_face_data_community_time(date, community, time, people_num, people_time, add_time)
+        values
+        (
+        #{faceDataCommunityTime.date},#{faceDataCommunityTime.community},
+        #{faceDataCommunityTime.time}, #{faceDataCommunityTime.peopleNum},
+        #{faceDataCommunityTime.peopleTime}, #{faceDataCommunityTime.addTime}
+        )
+    </insert>
+
+    <!--批量插入数据-->
+    <insert id="insertFaceDataCommunityTimeBatch" parameterType="java.util.List">
+        insert into frp_face_data_community_time(date, community, time, people_num, people_time, add_time)
+        values
+        <foreach collection="faceDataCommunityTimeList" item="faceDataCommunityTime" index="index" separator=",">
+            (
+            #{faceDataCommunityTime.date},#{faceDataCommunityTime.community},
+            #{faceDataCommunityTime.time}, #{faceDataCommunityTime.peopleNum},
+            #{faceDataCommunityTime.peopleTime}, #{faceDataCommunityTime.addTime}
+            )
+        </foreach>
+    </insert>
+
+    <!--获取人数人次时间列表-->
+    <select id="listPeopleNumTimeTime" resultMap="PeopleNumTimeTimeResultMap">
+        select time, sum(people_num) as people_num, sum(people_time) as people_time
+        from frp_face_data_community_time
+        where community = #{community,jdbcType=VARCHAR}
+        and date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+        group by time
+    </select>
+
+    <!--获取实际日期列表-->
+    <select id="listActualDate" resultType="java.lang.String">
+        select date
+        from frp_face_data_community_time
+        where date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+        group by date
+    </select>
+</mapper>

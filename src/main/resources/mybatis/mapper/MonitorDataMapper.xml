@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinchao.data.dao.MonitorDataMapper">
+    <!--监播数据DTO结果集-->
+    <resultMap id="MonitorDataDTOResultMap" type="com.xinchao.data.model.dto.MonitorDataDTO">
+        <result column="exposures_sum" jdbcType="INTEGER" property="exposuresSum"/>
+        <result column="touch_sum" jdbcType="INTEGER" property="touchSum"/>
+        <result column="watch_sum" jdbcType="INTEGER" property="watchSum"/>
+        <result column="play_duration_sum" jdbcType="INTEGER" property="playDurationSum"/>
+    </resultMap>
+
+    <!--监播日期年龄结果集-->
+    <resultMap id="MonitorDateWatchResultMap" type="com.xinchao.data.model.dto.MonitorDateWatchDTO">
+        <result column="date" jdbcType="INTEGER" property="date"/>
+        <result column="watch_sum" jdbcType="INTEGER" property="watchSum"/>
+        <result column="play_duration_sum" jdbcType="INTEGER" property="playDurationSum"/>
+    </resultMap>
+
+    <!--插入数据-->
+    <insert id="insertMonitorData" parameterType="com.xinchao.data.model.MonitorData">
+        insert into frp_monitor_data(date,exposures_sum, touch_sum, watch_sum, play_duration_sum, add_time)
+        values
+            (
+                #{monitorData.date},#{monitorData.exposuresSum},
+                #{monitorData.touchSum},#{monitorData.watchSum},
+                #{monitorData.playDurationSum},#{monitorData.addTime}
+            )
+    </insert>
+
+    <!--批量插入数据-->
+    <insert id="insertMonitorDataBatch" parameterType="java.util.List">
+        insert into frp_monitor_data(date,exposures_sum, touch_sum, watch_sum, play_duration_sum, add_time)
+        values
+        <foreach collection="monitorDataList" item="monitorData" index="index" separator=",">
+            (
+                #{monitorData.date},#{monitorData.exposuresSum},
+                #{monitorData.touchSum},#{monitorData.watchSum},
+                #{monitorData.playDurationSum},#{monitorData.addTime}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 获取监播数据DTO-->
+    <select id="getMonitorDataDTO" resultMap="MonitorDataDTOResultMap">
+        select sum(exposures_sum) as exposures_sum, sum(touch_sum) as touch_sum, sum(watch_sum) as watch_sum, sum(play_duration_sum) as play_duration_sum
+        from frp_monitor_data
+        where date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+    </select>
+
+    <!--获取监日期观看人次列表-->
+    <select id="listMonitorDateWatch" resultMap="MonitorDateWatchResultMap">
+        select date,watch_sum,play_duration_sum
+        from frp_monitor_data
+        where date in
+        (
+            <foreach collection="dateList" item="date" index="index" separator=",">
+                #{date,jdbcType=VARCHAR}
+            </foreach>
+        )
+    </select>
+
+    <!--获取实际日期列表-->
+    <select id="listActualDate" resultType="java.lang.String">
+        select date
+        from frp_monitor_data
+        where date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+        group by date
+    </select>
+</mapper>

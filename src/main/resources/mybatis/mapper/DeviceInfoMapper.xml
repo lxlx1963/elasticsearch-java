@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinchao.data.dao.DeviceInfoMapper">
+    <!--终端信息DTO-->
+    <resultMap id="DeviceInfoDTOResultMap" type="com.xinchao.data.model.dto.DeviceInfoDTO">
+        <result column="device_number" jdbcType="VARCHAR" property="deviceNumber"/>
+        <result column="province" jdbcType="VARCHAR" property="province"/>
+        <result column="city" jdbcType="VARCHAR" property="city"/>
+        <result column="community" jdbcType="INTEGER" property="community"/>
+        <result column="residence_type" jdbcType="INTEGER" property="residenceType"/>
+    </resultMap>
+
+    <!--小区对应城市结果集-->
+    <resultMap id="DeviceCommunityCityResultMap" type="com.xinchao.data.model.dto.DeviceCommunityCityDTO">
+        <result column="community" jdbcType="INTEGER" property="community"/>
+        <result column="city" jdbcType="VARCHAR" property="city"/>
+    </resultMap>
+
+    <!--终端对应住宅类型结果集-->
+    <resultMap id="DeviceNumberResidenceTypeResultMap" type="com.xinchao.data.model.dto.DeviceNumberResidenceTypeDTO">
+        <result column="device_number" jdbcType="VARCHAR" property="deviceNumber"/>
+        <result column="residence_type" jdbcType="INTEGER" property="residenceType"/>
+    </resultMap>
+
+    <!-- 获取所有终端信息DTO-->
+    <select id="listAllDeviceInfoDTO" resultMap="DeviceInfoDTOResultMap">
+        select device_number,province, city, community, residence_type from frp_device_info
+    </select>
+
+    <!--获取小区对应城市列表-->
+    <select id="listDeviceCommunityCity" resultMap="DeviceCommunityCityResultMap">
+        select community, city from frp_device_info group by community
+    </select>
+
+    <!--获取终端编码对应的住宅类型列表-->
+    <select id="listDeviceNumberResidenceType" resultMap="DeviceNumberResidenceTypeResultMap">
+        select device_number, residence_type from frp_device_info
+    </select>
+
+    <!-- 获取终端编码对应城市列表 -->
+    <select id="listDeviceNumberCity" resultType="com.xinchao.data.model.dto.DeviceNumberCityDTO">
+        SELECT
+            device_number AS deviceNumber,
+            city
+        FROM frp_device_info
+    </select>
+
+</mapper>

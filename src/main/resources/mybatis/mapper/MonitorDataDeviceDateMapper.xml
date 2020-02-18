@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinchao.data.dao.MonitorDataDeviceDateMapper">
+    <!--插入监播数据（设备）-->
+    <insert id="insertMonitorDataDeviceDate" parameterType="com.xinchao.data.model.MonitorDataDeviceDate">
+        insert into frp_monitor_data_device_date(device_model, date, exposures_sum, touch_sum, watch_sum, play_duration_sum, add_time)
+        values
+        (
+            #{monitorDataDeviceDate.deviceModel},#{monitorDataDeviceDate.date},
+            #{monitorDataDeviceDate.exposuresSum},#{monitorDataDeviceDate.touchSum},
+            #{monitorDataDeviceDate.watchSum},#{monitorDataDeviceDate.playDurationSum},
+            #{monitorDataDeviceDate.addTime}
+        )
+    </insert>
+
+    <!--批量插入监播数据（设备）-->
+    <insert id="insertMonitorDataDeviceDateBatch" parameterType="java.util.List">
+        insert into frp_monitor_data_device_date(device_model, date, exposures_sum, touch_sum, watch_sum, play_duration_sum, add_time)
+        values
+        <foreach collection="monitorDataDeviceDateList" item="monitorDataDeviceDate" index="index" separator=",">
+            (
+                #{monitorDataDeviceDate.deviceModel},#{monitorDataDeviceDate.date},
+                #{monitorDataDeviceDate.exposuresSum},#{monitorDataDeviceDate.touchSum},
+                #{monitorDataDeviceDate.watchSum},#{monitorDataDeviceDate.playDurationSum},
+                #{monitorDataDeviceDate.addTime}
+            )
+        </foreach>
+    </insert>
+</mapper>

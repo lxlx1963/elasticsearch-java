@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinchao.data.dao.MonitorDataAgeMapper">
+
+    <!--监播年龄观看人次结果集-->
+    <resultMap id="MonitorAgeWatchResultMap" type="com.xinchao.data.model.dto.MonitorAgeWatchDTO">
+        <result column="age" jdbcType="VARCHAR" property="age"/>
+        <result column="touch_sum" jdbcType="INTEGER" property="touchSum"/>
+        <result column="watch_sum" jdbcType="INTEGER" property="watchSum"/>
+        <result column="play_duration_sum" jdbcType="INTEGER" property="playDurationSum"/>
+    </resultMap>
+
+    <!--插入数据-->
+    <insert id="insertMonitorDataAge" parameterType="com.xinchao.data.model.MonitorDataAge">
+        insert into frp_monitor_data_age(date, age, exposures_sum, touch_sum, watch_sum, play_duration_sum, add_time)
+        values
+            (
+                #{monitorDataAge.date},#{monitorDataAge.age},#{monitorDataAge.exposuresSum},
+                #{monitorDataAge.touchSum},#{monitorDataAge.watchSum},
+                #{monitorDataAge.playDurationSum},#{monitorDataAge.addTime}
+            )
+    </insert>
+
+    <!--批量插入数据-->
+    <insert id="insertMonitorDataAgeBatch" parameterType="java.util.List">
+        insert into frp_monitor_data_age(date, age, exposures_sum, touch_sum, watch_sum, play_duration_sum, add_time)
+        values
+        <foreach collection="monitorDataAgeList" item="monitorDataAge" index="index" separator=",">
+            (
+                #{monitorDataAge.date},#{monitorDataAge.age},#{monitorDataAge.exposuresSum},
+                #{monitorDataAge.touchSum},#{monitorDataAge.watchSum},
+                #{monitorDataAge.playDurationSum},#{monitorDataAge.addTime}
+            )
+        </foreach>
+    </insert>
+
+    <select id="listMonitorAgeWatch" resultMap="MonitorAgeWatchResultMap">
+      select age, sum(touch_sum) as touch_sum, sum(watch_sum) as watch_sum, sum(play_duration_sum) as play_duration_sum
+      from frp_monitor_data_age
+      where date in
+      (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+      )
+      group by age
+    </select>
+
+    <!--获取实际日期列表-->
+    <select id="listActualDate" resultType="java.lang.String">
+        select date
+        from frp_monitor_data_age
+        where date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+        group by date
+    </select>
+</mapper>

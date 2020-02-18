@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinchao.data.dao.FaceDataProvinceMapper">
+    <!--汇总省人脸数据结果集-->
+    <resultMap id="SummarizeFaceDataProvinceDTOResultMap" type="com.xinchao.data.model.dto.SummarizeFaceDataProvinceDTO">
+        <result column="province" jdbcType="VARCHAR" property="province"/>
+        <result column="province_center" jdbcType="VARCHAR" property="provinceCenter"/>
+        <result column="city_num" jdbcType="INTEGER" property="cityNum"/>
+        <result column="community_num" jdbcType="INTEGER" property="communityNum"/>
+        <result column="device_num" jdbcType="INTEGER" property="deviceNum"/>
+        <result column="people_num" jdbcType="INTEGER" property="peopleNum"/>
+        <result column="male_num" jdbcType="INTEGER" property="maleNum"/>
+        <result column="female_num" jdbcType="INTEGER" property="femaleNum"/>
+        <result column="main_age" jdbcType="VARCHAR" property="mainAge"/>
+    </resultMap>
+
+    <!--日期机器数量结果集-->
+    <resultMap id="DateDeviceNumResultMap" type="com.xinchao.data.model.dto.DateDeviceNumDTO">
+        <result column="date" jdbcType="VARCHAR" property="date"/>
+        <result column="device_num" jdbcType="INTEGER" property="deviceNum"/>
+    </resultMap>
+
+    <!--插入人数数据(省)-->
+    <insert id="insertFaceDataProvince" parameterType="com.xinchao.data.model.FaceDataProvince">
+        insert into frp_face_data_province(date, province, province_center, city_num, community_num, device_num, people_num, male_num, female_num, main_age, add_time)
+        values
+        (
+            #{faceDataProvince.date},#{faceDataProvince.province},
+            #{faceDataProvince.provinceCenter},#{faceDataProvince.cityNum},
+            #{faceDataProvince.communityNum},#{faceDataProvince.deviceNum},
+            #{faceDataProvince.peopleNum},#{faceDataProvince.maleNum},#{faceDataProvince.femaleNum},
+            #{faceDataProvince.mainAge},#{faceDataProvince.addTime}
+        )
+    </insert>
+
+    <!--批量插入人数数据(省)-->
+    <insert id="insertFaceDataProvinceBatch" parameterType="java.util.List">
+        insert into frp_face_data_province(date, province, province_center, city_num, community_num, device_num, people_num, male_num,
+        female_num, main_age, add_time)
+        values
+        <foreach collection="faceDataProvinceList" item="faceDataProvince" index="index" separator=",">
+        (
+            #{faceDataProvince.date},#{faceDataProvince.province},
+            #{faceDataProvince.provinceCenter},#{faceDataProvince.cityNum},
+            #{faceDataProvince.communityNum},#{faceDataProvince.deviceNum},
+            #{faceDataProvince.peopleNum},#{faceDataProvince.maleNum},#{faceDataProvince.femaleNum},
+            #{faceDataProvince.mainAge},#{faceDataProvince.addTime}
+        )
+        </foreach>
+    </insert>
+
+    <!--获取汇总省人脸数据列表-->
+    <select id="listSummarizeFaceDataProvinceDTO" resultMap="SummarizeFaceDataProvinceDTOResultMap">
+        select province, province_center, city_num, community_num, device_num, people_num, male_num, female_num, main_age
+        from frp_face_data_province
+        where date = #{date,jdbcType=VARCHAR}
+    </select>
+
+    <!--获取日期对应机器数量列表-->
+    <select id="listDateDeviceNum" resultMap="DateDeviceNumResultMap">
+        select date,sum(device_num) as device_num
+        from frp_face_data_province
+        where date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+        group by date
+    </select>
+
+
+</mapper>

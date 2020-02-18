@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinchao.data.dao.FaceDataCommunityMapper">
+    <resultMap id="SummarizeTopTenDTOResultMap" type="com.xinchao.data.model.dto.SummarizeTopTenDTO">
+        <result column="community" jdbcType="VARCHAR" property="community"/>
+        <result column="people_num_sum" jdbcType="INTEGER" property="peopleNumSum"/>
+    </resultMap>
+
+    <!--人数年龄结果集-->
+    <resultMap id="PeopleNumAgeResultMap" type="com.xinchao.data.model.dto.PeopleNumAgeDTO">
+        <result column="age" jdbcType="VARCHAR" property="age"/>
+        <result column="people_num" jdbcType="INTEGER" property="peopleNum"/>
+    </resultMap>
+
+    <!--人数人次时间结果集-->
+    <resultMap id="PeopleNumTimeTimeResultMap" type="com.xinchao.data.model.dto.PeopleNumTimeTimeDTO">
+        <result column="time" jdbcType="VARCHAR" property="time"/>
+        <result column="people_num" jdbcType="INTEGER" property="peopleNum"/>
+        <result column="people_time" jdbcType="INTEGER" property="peopleTime"/>
+    </resultMap>
+
+    <!--人数人次年龄结果集-->
+    <resultMap id="PeopleNumTimeAgeResultMap" type="com.xinchao.data.model.dto.PeopleNumTimeAgeDTO">
+        <result column="time" jdbcType="VARCHAR" property="time"/>
+        <result column="people_num" jdbcType="INTEGER" property="peopleNum"/>
+        <result column="people_time" jdbcType="INTEGER" property="peopleTime"/>
+    </resultMap>
+
+    <!--人数人次结果集-->
+    <resultMap id="PeopleNumTimeResultMap" type="com.xinchao.data.model.dto.PeopleNumTimeDTO">
+        <result column="people_num" jdbcType="INTEGER" property="peopleNum"/>
+        <result column="people_time" jdbcType="INTEGER" property="peopleTime"/>
+    </resultMap>
+
+    <!--省城市数结果集-->
+    <resultMap id="ProvinceCityNumDTOResultMap" type="com.xinchao.data.model.dto.ProvinceCityNumDTO">
+        <result column="province" jdbcType="VARCHAR" property="province"/>
+        <result column="city_num" jdbcType="INTEGER" property="cityNum"/>
+    </resultMap>
+
+    <!--省小区数结果集-->
+    <resultMap id="ProvinceCommunityNumDTOResultMap" type="com.xinchao.data.model.dto.ProvinceCommunityNumDTO">
+        <result column="province" jdbcType="VARCHAR" property="province"/>
+        <result column="community_num" jdbcType="INTEGER" property="communityNum"/>
+    </resultMap>
+
+    <!--插入数据-->
+    <insert id="insertFaceDataCommunity" parameterType="com.xinchao.data.model.FaceDataCommunity">
+        insert into frp_face_data_community(date, community, city, province, people_num, people_time, add_time)
+        values
+            (
+                #{faceDataCommunity.date},#{faceDataCommunity.community},
+                #{faceDataCommunity.city},#{faceDataCommunity.province},#{faceDataCommunity.peopleNum},
+                #{faceDataCommunity.peopleTime},#{faceDataCommunity.addTime}
+            )
+    </insert>
+
+    <!--批量插入数据-->
+    <insert id="insertFaceDataCommunityBatch" parameterType="java.util.List">
+        insert into frp_face_data_community(date, community, city, province, people_num, people_time, add_time)
+        values
+        <foreach collection="faceDataCommunityList" item="faceDataCommunity" index="index" separator=",">
+            (
+            #{faceDataCommunity.date},#{faceDataCommunity.community},
+            #{faceDataCommunity.city},#{faceDataCommunity.province},#{faceDataCommunity.peopleNum},
+            #{faceDataCommunity.peopleTime},#{faceDataCommunity.addTime}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 获取汇总近7天top10小区的人数列表 -->
+    <select id="listSummarizeTopTenDTO" resultMap="SummarizeTopTenDTOResultMap">
+        select community, sum(people_num) as people_num_sum
+        from frp_face_data_community
+        where date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+        group by community
+        order by people_num_sum desc
+        limit 10
+    </select>
+
+    <!--获取人数年龄列表-->
+    <select id="listPeopleNumAge" resultMap="PeopleNumAgeResultMap">
+        select age, sum(people_num) as people_num
+        from frp_face_data_community
+        where date = #{date,jdbcType=VARCHAR} and community = #{community,jdbcType=VARCHAR}
+        group by age
+    </select>
+
+    <!--获取人数人次时间列表-->
+    <select id="listPeopleNumTimeTime" resultMap="PeopleNumTimeTimeResultMap">
+        select time, sum(people_num) as people_num, sum(people_time) as people_time
+        from frp_face_data_community
+        where date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+        and community = #{community,jdbcType=VARCHAR}
+        group by time
+    </select>
+
+    <!--获取人数人次年龄列表-->
+    <select id="listPeopleNumTimeAge" resultMap="PeopleNumTimeAgeResultMap">
+        select time, age, sum(people_num) as people_num
+        from frp_face_data_community
+        where date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+        and community = #{community,jdbcType=VARCHAR}
+        group by time,age
+    </select>
+
+    <!--获取实际日期列表-->
+    <select id="listActualDate" resultType="java.lang.String">
+        select date
+        from frp_face_data_community
+        where date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+        group by date
+    </select>
+
+    <!--获取小区列表-->
+    <select id="listCommunity" resultType="java.lang.String">
+        select community
+        from frp_face_data_community
+        where date = #{date}
+        group by community
+    </select>
+
+    <!--获取小区的人数人次-->
+    <select id="getPeopleNumTime" resultMap="PeopleNumTimeResultMap">
+        select sum(people_num) as people_num, sum(people_time) as people_time
+        from frp_face_data_community
+        where date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+        and community = #{community,jdbcType=VARCHAR}
+    </select>
+
+    <!--获取省城市数量列表-->
+    <select id="listProvinceCityNumDTO" resultMap="ProvinceCityNumDTOResultMap">
+        select tt.province,count(tt.city) as city_num from (select province,city from frp_face_data_community where date = #{date} group by province,city) tt group by tt.province
+    </select>
+
+    <!--获取省城市数量列表-->
+    <select id="listProvinceCommunityNumDTO" resultMap="ProvinceCommunityNumDTOResultMap">
+        select tt.province,count(tt.community) as community_num from (select province,community from frp_face_data_community where date = #{date} group by province,community) tt group by tt.province
+    </select>
+
+</mapper>

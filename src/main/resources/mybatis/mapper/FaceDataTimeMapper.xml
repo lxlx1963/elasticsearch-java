@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinchao.data.dao.FaceDataTimeMapper">
+    <!--SummarizeRecentSevenDTOResultMap-->
+    <resultMap id="SummarizeRecentSevenDTOResultMap" type="com.xinchao.data.model.dto.SummarizeRecentSevenDTO">
+        <result column="date" jdbcType="VARCHAR" property="date"/>
+        <result column="people_num_sum" jdbcType="INTEGER" property="peopleNumSum"/>
+    </resultMap>
+
+    <!--时间人数人次-->
+    <resultMap id="DeviceTimeDTOResultMap" type="com.xinchao.data.model.dto.SingleDeviceTimeDTO">
+        <result column="time" jdbcType="VARCHAR" property="time"/>
+        <result column="people_num_sum" jdbcType="INTEGER" property="peopleNumSum"/>
+        <result column="people_time_sum" jdbcType="INTEGER" property="peopleTimeSum"/>
+    </resultMap>
+
+    <!--插入人脸数据-->
+    <insert id="insertFaceDataTime" parameterType="com.xinchao.data.model.FaceDataTime">
+        insert into frp_face_data_time(date, time, people_num, people_time, add_time)
+        values
+            (
+                #{faceDataTime.date},#{faceDataTime.time},
+                #{faceDataTime.peopleNum},#{faceDataTime.peopleTime},
+                #{faceDataTime.addTime}
+            )
+    </insert>
+
+    <!--批量插入人脸数据-->
+    <insert id="insertFaceDataTimeBatch" parameterType="java.util.List">
+        insert into frp_face_data_time(date, time, people_num, people_time, add_time)
+        values
+        <foreach collection="faceDataTimeList" item="faceDataTime" index="index" separator=",">
+            (
+            #{faceDataTime.date},#{faceDataTime.time},
+            #{faceDataTime.peopleNum},#{faceDataTime.peopleTime},
+            #{faceDataTime.addTime}
+            )
+        </foreach>
+    </insert>
+
+    <!--获取汇总近7天DTO列表-->
+    <select id="listSummarizeRecentSevenDTO" resultMap="SummarizeRecentSevenDTOResultMap">
+        select date, sum(people_num) as people_num_sum
+        from frp_face_data_time
+        where date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+        group by date
+    </select>
+
+    <!--获取客流人数、人次按时间分组-->
+    <select id="listDeviceTime" resultMap="DeviceTimeDTOResultMap">
+        select time,sum(people_num) as people_num_sum,sum(people_time) as people_time_sum
+        from frp_face_data_time
+        where date = #{date}
+        and  residence_type in
+        (
+        <foreach collection="residenceTypeList" item="residenceType" index="index" separator=",">
+            #{residenceType,jdbcType=VARCHAR}
+        </foreach>
+        )
+        group by time
+    </select>
+</mapper>

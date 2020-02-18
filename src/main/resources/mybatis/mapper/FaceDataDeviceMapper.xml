@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinchao.data.dao.FaceDataDeviceMapper">
+
+    <!--DatePeopleSumResultMap-->
+    <resultMap id="DatePeopleSumResultMap" type="com.xinchao.data.model.dto.DeviceDatePeopleSumDTO">
+        <result column="date" jdbcType="VARCHAR" property="date"/>
+        <result column="people_sum" jdbcType="INTEGER" property="peopleSum"/>
+    </resultMap>
+
+    <!--插入数据-->
+    <insert id="insertFaceDataDevice" parameterType="com.xinchao.data.model.FaceDataDevice">
+        insert into frp_face_data_device(date, device_code, residence_type, people_num, people_time, add_time)
+        values
+        (
+            #{faceDataDevice.date},#{faceDataDevice.deviceCode},
+            #{faceDataDevice.residenceType},#{faceDataDevice.peopleNum},
+            #{faceDataDevice.peopleTime},#{faceDataDevice.addTime}
+        )
+    </insert>
+
+    <!--批量插入数据-->
+    <insert id="insertFaceDataDeviceBatch" parameterType="java.util.List">
+        insert into frp_face_data_device(date, device_code, residence_type, people_num, people_time, add_time)
+        values
+        <foreach collection="faceDataDeviceList" item="faceDataDevice" index="index" separator=",">
+            (
+                #{faceDataDevice.date},#{faceDataDevice.deviceCode},
+                #{faceDataDevice.residenceType},#{faceDataDevice.peopleNum},
+                #{faceDataDevice.peopleTime},#{faceDataDevice.addTime}
+            )
+        </foreach>
+    </insert>
+
+    <!--获取日期人数总数列表-->
+    <select id="listDeviceDatePeopleSum" resultMap="DatePeopleSumResultMap">
+        select date, sum(people_num) as people_sum
+        from frp_face_data_device
+        where date in
+        (
+            <foreach collection="dateList" item="date" index="index" separator=",">
+                #{date,jdbcType=VARCHAR}
+            </foreach>
+        )
+        group by date
+    </select>
+
+    <!--获取住宅类型当天的机器编码列表-->
+    <select id="listResidenceTypeDeviceModel" resultType="java.lang.String">
+        select device_code
+        from frp_face_data_device
+        where date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+        and residence_type in
+        (
+        <foreach collection="residenceTypeList" item="residenceType" index="index" separator=",">
+            #{residenceType,jdbcType=VARCHAR}
+        </foreach>
+        )
+        group by device_code
+    </select>
+
+</mapper>

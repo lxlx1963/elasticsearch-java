@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinchao.data.dao.FaceDataCommunitySexMapper">
+
+    <!--人数人次结果集-->
+    <resultMap id="PeopleNumTimeResultMap" type="com.xinchao.data.model.dto.PeopleNumTimeDTO">
+        <result column="people_num" jdbcType="INTEGER" property="peopleNum"/>
+        <result column="people_time" jdbcType="INTEGER" property="peopleTime"/>
+    </resultMap>
+
+    <!--人数性别结果集-->
+    <resultMap id="PeopleNumSexResultMap" type="com.xinchao.data.model.dto.PeopleNumSexDTO">
+        <result column="sex" jdbcType="VARCHAR" property="sex"/>
+        <result column="people_num" jdbcType="INTEGER" property="peopleNum"/>
+    </resultMap>
+
+    <!--获取人脸数据列表（按省、性别分组）-->
+    <resultMap id="FaceDataProvinceSexDTOResultMap" type="com.xinchao.data.model.dto.FaceDataProvinceSexDTO">
+        <result column="province" jdbcType="VARCHAR" property="province"/>
+        <result column="sex" jdbcType="VARCHAR" property="sex"/>
+        <result column="people_num" jdbcType="INTEGER" property="peopleNum"/>
+    </resultMap>
+
+    <!--批量插入数据-->
+    <insert id="insertFaceDataCommunitySexBatch" parameterType="java.util.List">
+        insert into frp_face_data_community_sex(date, community, city, province, sex, people_num, people_time, add_time)
+        values
+        <foreach collection="faceDataCommunitySexList" item="faceDataCommunitySex" index="index" separator=",">
+            (
+            #{faceDataCommunitySex.date},#{faceDataCommunitySex.community},
+            #{faceDataCommunitySex.city},#{faceDataCommunitySex.province},
+            #{faceDataCommunitySex.sex},#{faceDataCommunitySex.peopleNum},
+            #{faceDataCommunitySex.peopleTime},#{faceDataCommunitySex.addTime}
+            )
+        </foreach>
+    </insert>
+
+    <!--获取人数人次-->
+    <select id="getPeopleNumTime" resultMap="PeopleNumTimeResultMap">
+        select sum(people_num) as people_num, sum(people_time) as people_time
+        from frp_face_data_community_sex
+        where date = #{date,jdbcType=VARCHAR} and community = #{community,jdbcType=VARCHAR}
+    </select>
+
+    <!--获取人数按性别分组列表-->
+    <select id="listPeopleNumSex" resultMap="PeopleNumSexResultMap">
+        select sex,sum(people_num) as people_num
+        from frp_face_data_community_sex
+        where date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+        and community = #{community,jdbcType=VARCHAR}
+        group by sex
+    </select>
+
+    <!--获取小区列表-->
+    <select id="listCommunity" resultType="java.lang.String">
+        select community
+        from frp_face_data_community_sex
+        where date = #{date}
+        group by community
+    </select>
+
+    <!--获取人脸数据列表（按省、性别分组）-->
+    <select id="listFaceDataProvinceSexDTO" resultMap="FaceDataProvinceSexDTOResultMap">
+        select province, sex, sum(people_num) as people_num
+        from frp_face_data_community_sex
+        where date =#{date,jdbcType=VARCHAR}
+        group by province,sex
+    </select>
+
+    <!--获取实际日期列表-->
+    <select id="listActualDate" resultType="java.lang.String">
+        select date
+        from frp_face_data_community_sex
+        where date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+        and community = #{community,jdbcType=VARCHAR}
+        group by date
+    </select>
+</mapper>

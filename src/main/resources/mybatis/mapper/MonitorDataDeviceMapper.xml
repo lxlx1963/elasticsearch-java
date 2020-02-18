@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinchao.data.dao.MonitorDataDeviceMapper">
+
+    <!--监播数据设备日期数据结果集-->
+    <resultMap id="MonitorDataDeviceDateResultMap" type="com.xinchao.data.model.MonitorDataDeviceDate">
+        <result column="device_model" jdbcType="VARCHAR" property="deviceModel"/>
+        <result column="date" jdbcType="VARCHAR" property="date"/>
+        <result column="exposures_sum" jdbcType="INTEGER" property="exposuresSum"/>
+        <result column="touch_sum" jdbcType="INTEGER" property="touchSum"/>
+        <result column="watch_sum" jdbcType="INTEGER" property="watchSum"/>
+        <result column="play_duration_sum" jdbcType="INTEGER" property="playDurationSum"/>
+    </resultMap>
+
+    <!--监播年龄住宅类型结果集-->
+    <resultMap id="MonitorAgeTypeResultMap" type="com.xinchao.data.model.dto.MonitorAgeTypeDTO">
+        <result column="residence_type" jdbcType="VARCHAR" property="residenceType"/>
+        <result column="age" jdbcType="VARCHAR" property="age"/>
+        <result column="touch_sum" jdbcType="INTEGER" property="touchSum"/>
+        <result column="watch_sum" jdbcType="INTEGER" property="watchSum"/>
+    </resultMap>
+
+    <!--小区观看时长结果集-->
+    <resultMap id="MonitorCommunityWatchResultMap" type="com.xinchao.data.model.dto.MonitorCommunityWatchDTO">
+        <result column="community" jdbcType="VARCHAR" property="community"/>
+        <result column="watch_sum" jdbcType="INTEGER" property="watchSum"/>
+    </resultMap>
+
+    <!--插入监播数据（设备）-->
+    <insert id="insertMonitorDataDevice" parameterType="com.xinchao.data.model.MonitorDataDevice">
+        insert into frp_monitor_data_device(device_model, date, time, age, sex, city, community, residence_type, exposures_sum, touch_sum, watch_sum, play_duration_sum, add_time)
+        values
+        (
+            #{monitorDataDevice.deviceModel},#{monitorDataDevice.date},
+            #{monitorDataDevice.time},#{monitorDataDevice.age},
+            #{monitorDataDevice.sex},#{monitorDataDevice.city},
+            #{monitorDataDevice.community},#{monitorDataDevice.residenceType},
+            #{monitorDataDevice.exposuresSum},#{monitorDataDevice.touchSum},
+            #{monitorDataDevice.watchSum},#{monitorDataDevice.playDurationSum},
+            #{monitorDataDevice.addTime}
+        )
+    </insert>
+
+    <!--批量插入监播数据（设备）-->
+    <insert id="insertMonitorDataDeviceBatch" parameterType="java.util.List">
+        insert into frp_monitor_data_device(device_model, date, time, age, sex, city, community, residence_type,
+        exposures_sum, touch_sum, watch_sum, play_duration_sum, add_time)
+        values
+        <foreach collection="monitorDataDeviceList" item="monitorDataDevice" index="index" separator=",">
+            (
+            #{monitorDataDevice.deviceModel},#{monitorDataDevice.date},
+            #{monitorDataDevice.time},#{monitorDataDevice.age},
+            #{monitorDataDevice.sex},#{monitorDataDevice.city},
+            #{monitorDataDevice.community},#{monitorDataDevice.residenceType},
+            #{monitorDataDevice.exposuresSum},#{monitorDataDevice.touchSum},
+            #{monitorDataDevice.watchSum},#{monitorDataDevice.playDurationSum},
+            #{monitorDataDevice.addTime}
+            )
+        </foreach>
+    </insert>
+
+    <!--获取监播数据设备日期数据列表-->
+    <select id="listMonitorDataDeviceDate" resultMap="MonitorDataDeviceDateResultMap">
+        select device_model, date, sum(exposures_sum) as exposures_sum, sum(touch_sum) as touch_sum, sum(watch_sum) as watch_sum, sum(play_duration_sum) as play_duration_sum
+        from frp_monitor_data_device
+        where date = #{date,jdbcType=VARCHAR}
+        group by device_model
+    </select>
+
+    <!--获取小区观看时长列表-->
+    <select id="listMonitorCommunityWatch" resultMap="MonitorCommunityWatchResultMap">
+        select community,sum(play_duration_sum) as watch_sum
+        from frp_monitor_data_device
+        where date in
+        (
+            <foreach collection="dateList" item="date" index="index" separator=",">
+                #{date,jdbcType=VARCHAR}
+            </foreach>
+        )
+        group by community
+        order by watch_sum desc
+    </select>
+
+    <!--获取监播年龄住宅类型列表-->
+    <select id="listMonitorAgeType" resultMap="MonitorAgeTypeResultMap">
+        select age, sum(touch_sum) as touch_sum, sum(watch_sum) as watch_sum
+        from frp_monitor_data_device
+        <where>
+            <if test="dateList != null">
+                date in
+                (
+                <foreach collection="dateList" item="date" index="index" separator=",">
+                    #{date,jdbcType=VARCHAR}
+                </foreach>
+                )
+            </if>
+            <if test="residenceTypeList != null">
+                and residence_type in
+                (
+                <foreach collection="residenceTypeList" item="residenceType" index="index" separator=",">
+                    #{residenceType,jdbcType=VARCHAR}
+                </foreach>
+                )
+            </if>
+        </where>
+        group by age
+    </select>
+
+    <!--获取实际日期列表-->
+    <select id="listActualDate" resultType="java.lang.String">
+        select date
+        from frp_monitor_data_advertisement_date
+        <where>
+            <if test="dateList != null">
+                date in
+                (
+                <foreach collection="dateList" item="date" index="index" separator=",">
+                    #{date,jdbcType=VARCHAR}
+                </foreach>
+                )
+            </if>
+        </where>
+        group by date
+    </select>
+</mapper>

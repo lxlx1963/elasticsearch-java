@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinchao.data.dao.ProvinceCityMapper">
+    <!--ProvinceCityResultMap-->
+    <resultMap id="ProvinceCityResultMap" type="com.xinchao.data.model.dto.ProvinceCityDTO">
+        <result column="province" jdbcType="VARCHAR" property="province"/>
+        <result column="city" jdbcType="VARCHAR" property="city"/>
+    </resultMap>
+
+    <!--ProvinceCenterResultMap-->
+    <resultMap id="ProvinceCenterResultMap" type="com.xinchao.data.model.dto.ProvinceCenterDTO">
+        <result column="province" jdbcType="VARCHAR" property="province"/>
+        <result column="province_center" jdbcType="VARCHAR" property="provinceCenter"/>
+    </resultMap>
+
+    <!--获取省城市列表-->
+    <select id="listProvinceCity" resultMap="ProvinceCityResultMap">
+        select province, city from frp_province_city
+    </select>
+
+    <!--获取省会中心坐标列表-->
+    <select id="listProvinceCenter" resultMap="ProvinceCenterResultMap">
+        select province, province_center from frp_province_city group by province
+    </select>
+
+</mapper>

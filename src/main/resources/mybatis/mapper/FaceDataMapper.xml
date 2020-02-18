@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinchao.data.dao.FaceDataMapper">
+
+    <!--获取人脸数据列表（按省、性别分组）-->
+    <resultMap id="FaceDataProvinceSexDTOResultMap" type="com.xinchao.data.model.dto.FaceDataProvinceSexDTO">
+        <result column="province" jdbcType="VARCHAR" property="province"/>
+        <result column="sex" jdbcType="VARCHAR" property="sex"/>
+        <result column="people_num" jdbcType="INTEGER" property="peopleNum"/>
+    </resultMap>
+
+    <!--获取人脸数据列表（按省、年龄分组）-->
+    <resultMap id="FaceDataProvinceAgeDTOResultMap" type="com.xinchao.data.model.dto.FaceDataProvinceAgeDTO">
+        <result column="province" jdbcType="VARCHAR" property="province"/>
+        <result column="age" jdbcType="VARCHAR" property="age"/>
+    </resultMap>
+
+    <!--汇总人数数据-->
+    <resultMap id="SummarizePeopleNumDTOResultMap" type="com.xinchao.data.model.dto.SummarizePeopleNumDTO">
+        <result column="people_num_sum" jdbcType="INTEGER" property="peopleNumSum"/>
+        <result column="people_time_sum" jdbcType="INTEGER" property="peopleTimeSum"/>
+    </resultMap>
+
+    <!--省城市数结果集-->
+    <resultMap id="ProvinceCityNumDTOResultMap" type="com.xinchao.data.model.dto.ProvinceCityNumDTO">
+        <result column="province" jdbcType="VARCHAR" property="province"/>
+        <result column="city_num" jdbcType="INTEGER" property="cityNum"/>
+    </resultMap>
+
+    <!--省终端数结果集-->
+    <resultMap id="ProvinceDeviceNumDTOResultMap" type="com.xinchao.data.model.dto.ProvinceDeviceNumDTO">
+        <result column="province" jdbcType="VARCHAR" property="province"/>
+        <result column="device_num" jdbcType="INTEGER" property="deviceNum"/>
+    </resultMap>
+
+    <!--省小区数结果集-->
+    <resultMap id="ProvinceCommunityNumDTOResultMap" type="com.xinchao.data.model.dto.ProvinceCommunityNumDTO">
+        <result column="province" jdbcType="VARCHAR" property="province"/>
+        <result column="community_num" jdbcType="INTEGER" property="communityNum"/>
+    </resultMap>
+
+    <!--插入人脸数据-->
+    <insert id="insertFaceData" parameterType="com.xinchao.data.model.FaceData">
+        insert into frp_face_data(device_model, date, time, age, sex, province, city, community, residence_type, people_num, people_time, add_time)
+        values
+            (
+                #{faceData.deviceModel},#{faceData.date},
+                #{faceData.time},#{faceData.age},
+                #{faceData.sex},#{faceData.province},#{faceData.city},
+                #{faceData.community},#{faceData.residenceType},
+                #{faceData.peopleNum},#{faceData.peopleTime},
+                #{faceData.addTime}
+            )
+    </insert>
+
+    <!--批量插入人脸数据-->
+    <insert id="insertFaceDataBatch" parameterType="java.util.List">
+        insert into frp_face_data(device_model, date, time, age, sex, province, city, community, residence_type,
+        people_num, people_time, add_time)
+        values
+        <foreach collection="faceDataList" item="faceData" index="index" separator=",">
+            (
+            #{faceData.deviceModel},#{faceData.date},
+            #{faceData.time},#{faceData.age},
+            #{faceData.sex},#{faceData.province},#{faceData.city},
+            #{faceData.community},#{faceData.residenceType},
+            #{faceData.peopleNum},#{faceData.peopleTime},
+            #{faceData.addTime}
+            )
+        </foreach>
+    </insert>
+
+    <!--获取人脸数据列表（按省、性别分组）-->
+    <select id="listFaceDataProvinceSexDTO" resultMap="FaceDataProvinceSexDTOResultMap">
+        select province, sex, sum(people_num) as people_num
+        from frp_face_data
+        where date =#{date,jdbcType=VARCHAR}
+        group by province,sex
+    </select>
+
+    <!--获取人脸数据列表（按省、年龄分组）-->
+    <select id="listFaceDataProvinceAgeDTO" resultMap="FaceDataProvinceAgeDTOResultMap">
+        SELECT
+            dd.province,
+            dd.age,
+            dd.people_sum
+        FROM
+            ( SELECT province, age, sum( people_num ) AS people_sum FROM frp_face_data WHERE province IS NOT NULL GROUP BY province, age ) dd
+            INNER JOIN (
+        SELECT
+            tt.province,
+            max( tt.people_sum ) AS people_max
+        FROM
+            ( SELECT province, age, sum( people_num ) AS people_sum FROM frp_face_data WHERE province IS NOT NULL GROUP BY province, age ) tt
+        GROUP BY
+            tt.province
+            ) temp ON dd.people_sum = temp.people_max
+    </select>
+
+    <!--获取汇总人数DTO-->
+    <select id="getSummarizePeopleNumDTO" resultMap="SummarizePeopleNumDTOResultMap">
+          select sum(people_num) as people_num_sum, sum(people_time) as people_time_sum
+          from frp_face_data
+          where date = #{date,jdbcType=VARCHAR}
+    </select>
+
+    <!-- 获取终端编码列表 -->
+    <select id="listDeviceModel" resultType="java.lang.String">
+        select device_model from frp_face_data where date = #{date} group by device_model
+    </select>
+
+    <!-- 获取城市列表 -->
+    <select id="listCity" resultType="java.lang.String">
+        select city from frp_face_data where date = #{date} group by city
+    </select>
+
+    <!--获取省城市数量列表-->
+    <select id="listProvinceCityNumDTO" resultMap="ProvinceCityNumDTOResultMap">
+        select tt.province,count(tt.city) as city_num from (select province,city from frp_face_data where date = #{date} group by province,city) tt group by tt.province
+    </select>
+
+    <!--获取省终端数量列表-->
+    <select id="listProvinceDeviceNumDTO" resultMap="ProvinceDeviceNumDTOResultMap">
+        select tt.province,count(tt.device_model) as device_num from (select province,device_model from frp_face_data where date = #{date} group by province,device_model) tt group by tt.province
+    </select>
+
+    <!--获取省城市数量列表-->
+    <select id="listProvinceCommunityNumDTO" resultMap="ProvinceCommunityNumDTOResultMap">
+        select tt.province,count(tt.community) as community_num from (select province,community from frp_face_data where date = #{date} group by province,community) tt group by tt.province
+    </select>
+</mapper>

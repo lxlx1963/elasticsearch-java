@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinchao.data.dao.FaceDataCommunityAgeMapper">
+    <!--人数年龄结果集-->
+    <resultMap id="PeopleNumAgeResultMap" type="com.xinchao.data.model.dto.PeopleNumAgeDTO">
+        <result column="age" jdbcType="VARCHAR" property="age"/>
+        <result column="people_num" jdbcType="INTEGER" property="peopleNum"/>
+    </resultMap>
+
+    <!--获取人脸数据列表（按省、年龄分组）-->
+    <resultMap id="FaceDataProvinceAgeDTOResultMap" type="com.xinchao.data.model.dto.FaceDataProvinceAgeDTO">
+        <result column="province" jdbcType="VARCHAR" property="province"/>
+        <result column="age" jdbcType="VARCHAR" property="age"/>
+    </resultMap>
+
+    <!--插入数据-->
+    <insert id="insertFaceDataCommunityAge" parameterType="com.xinchao.data.model.FaceDataCommunityAge">
+        insert into frp_face_data_community_age(date, community, city, province, age, people_num, people_time, add_time)
+        values
+        (
+            #{faceDataCommunityAge.date},#{faceDataCommunityAge.community},
+            #{faceDataCommunityAge.city},#{faceDataCommunityAge.province},
+            #{faceDataCommunityAge.age}, #{faceDataCommunityAge.peopleNum},
+            #{faceDataCommunityAge.peopleTime}, #{faceDataCommunityAge.addTime}
+        )
+    </insert>
+
+    <!--批量插入数据-->
+    <insert id="insertFaceDataCommunityAgeBatch" parameterType="java.util.List">
+        insert into frp_face_data_community_age(date, community, city, province, age, people_num, people_time, add_time)
+        values
+        <foreach collection="faceDataCommunityAgeList" item="faceDataCommunityAge" index="index" separator=",">
+            (
+                #{faceDataCommunityAge.date},#{faceDataCommunityAge.community},
+                #{faceDataCommunityAge.city},#{faceDataCommunityAge.province},
+                #{faceDataCommunityAge.age}, #{faceDataCommunityAge.peopleNum},
+                #{faceDataCommunityAge.peopleTime}, #{faceDataCommunityAge.addTime}
+            )
+        </foreach>
+    </insert>
+
+    <!--获取人数年龄列表-->
+    <select id="listPeopleNumAge" resultMap="PeopleNumAgeResultMap">
+        select age, sum(people_num) as people_num
+        from frp_face_data_community_age
+        where date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+        and community = #{community,jdbcType=VARCHAR}
+        group by age
+    </select>
+
+    <!--获取人脸数据列表（按省、年龄分组）-->
+    <select id="listFaceDataProvinceAgeDTO" resultMap="FaceDataProvinceAgeDTOResultMap">
+        SELECT
+        dd.province,
+        dd.age,
+        dd.people_sum
+        FROM
+        ( SELECT province, age, sum( people_num ) AS people_sum FROM frp_face_data_community_age  GROUP BY province, age ) dd
+        INNER JOIN (
+        SELECT
+        tt.province,
+        max( tt.people_sum ) AS people_max
+        FROM
+        ( SELECT province, age, sum( people_num ) AS people_sum FROM frp_face_data_community_age GROUP BY province, age ) tt
+        GROUP BY
+        tt.province
+        ) temp ON dd.people_sum = temp.people_max
+    </select>
+</mapper>

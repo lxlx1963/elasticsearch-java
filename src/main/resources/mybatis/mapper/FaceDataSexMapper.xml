@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinchao.data.dao.FaceDataSexMapper">
+    <!--人脸数据性别DTO-->
+    <resultMap id="FaceDataSexDTOResultMap" type="com.xinchao.data.model.dto.FaceDataSexDTO">
+        <result column="sex" jdbcType="VARCHAR" property="sex"/>
+        <result column="people_num" jdbcType="INTEGER" property="peopleNum"/>
+        <result column="people_time" jdbcType="INTEGER" property="peopleTime"/>
+    </resultMap>
+
+    <!--客流人数、人次按时间、性别分组结果集-->
+    <resultMap id="DeviceTimeSexResultMap" type="com.xinchao.data.model.dto.SingleDeviceTimeSexDTO">
+        <result column="time" jdbcType="VARCHAR" property="time"/>
+        <result column="sex" jdbcType="VARCHAR" property="sex"/>
+        <result column="people_num_sum" jdbcType="INTEGER" property="peopleNumSum"/>
+        <result column="people_time_sum" jdbcType="INTEGER" property="peopleTimeSum"/>
+    </resultMap>
+
+    <!--插入人脸数据-->
+    <insert id="insertFaceDataSex" parameterType="com.xinchao.data.model.FaceDataSex">
+        insert into frp_face_data_sex(date, sex, people_num, people_time, add_time)
+        values
+            (
+                #{faceDataSex.date},#{faceDataSex.sex},
+                #{faceDataSex.peopleNum},#{faceDataSex.peopleTime},
+                #{faceDataSex.addTime}
+            )
+    </insert>
+
+    <!--批量插入人脸数据-->
+    <insert id="insertFaceDataSexBatch" parameterType="java.util.List">
+        insert into frp_face_data_sex(date, sex, people_num, people_time, add_time)
+        values
+        <foreach collection="faceDataSexList" item="faceDataSex" index="index" separator=",">
+            (
+                #{faceDataSex.date},#{faceDataSex.sex},
+                #{faceDataSex.peopleNum},#{faceDataSex.peopleTime},
+                #{faceDataSex.addTime}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 获取人脸数据性别DTO列表 -->
+    <select id="listFaceDataSexDTO" resultMap="FaceDataSexDTOResultMap">
+        select sex, sum(people_num) as people_num, sum(people_time) as people_time
+        from frp_face_data_sex
+        where date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+        group by sex
+    </select>
+
+    <!--获取客流人数、人次按时间、性别分组-->
+    <select id="listDeviceTimeSex" resultMap="DeviceTimeSexResultMap">
+        select time,sex,sum(people_num) as people_num_sum,sum(people_time) as people_time_sum
+        from frp_face_data_sex
+        where date = #{date}
+        and  residence_type in
+        (
+        <foreach collection="residenceTypeList" item="residenceType" index="index" separator=",">
+            #{residenceType,jdbcType=VARCHAR}
+        </foreach>
+        )
+        group by time,sex;
+    </select>
+
+    <!--获取实际日期列表-->
+    <select id="listActualDate" resultType="java.lang.String">
+        select date
+        from frp_face_data_sex
+        where date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+        group by date
+    </select>
+
+</mapper>

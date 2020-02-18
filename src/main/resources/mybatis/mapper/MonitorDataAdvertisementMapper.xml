@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinchao.data.dao.MonitorDataAdvertisementMapper">
+
+    <!--监播数据广告（按广告名称统计）-->
+    <resultMap id="MonitorDataAdvertisementDateResultMap" type="com.xinchao.data.model.MonitorDataAdvertisementDate">
+        <result column="advertisement_name" jdbcType="VARCHAR" property="advertisementName"/>
+        <result column="date" jdbcType="VARCHAR" property="date"/>
+        <result column="exposures_sum" jdbcType="INTEGER" property="exposuresSum"/>
+        <result column="touch_sum" jdbcType="INTEGER" property="touchSum"/>
+        <result column="watch_sum" jdbcType="INTEGER" property="watchSum"/>
+        <result column="play_duration_sum" jdbcType="INTEGER" property="playDurationSum"/>
+    </resultMap>
+
+    <!--监播数据广告（按时间统计）-->
+    <resultMap id="MonitorDataAdvertisementTimeResultMap" type="com.xinchao.data.model.MonitorDataAdvertisementTime">
+        <result column="advertisement_name" jdbcType="VARCHAR" property="advertisementName"/>
+        <result column="date" jdbcType="VARCHAR" property="date"/>
+        <result column="time" jdbcType="VARCHAR" property="time"/>
+        <result column="exposures_sum" jdbcType="INTEGER" property="exposuresSum"/>
+        <result column="touch_sum" jdbcType="INTEGER" property="touchSum"/>
+        <result column="watch_sum" jdbcType="INTEGER" property="watchSum"/>
+        <result column="play_duration_sum" jdbcType="INTEGER" property="playDurationSum"/>
+    </resultMap>
+
+    <!--监播数据广告（按日期统计）-->
+    <resultMap id="MonitorDataResultMap" type="com.xinchao.data.model.MonitorData">
+        <result column="date" jdbcType="VARCHAR" property="date"/>
+        <result column="exposures_sum" jdbcType="INTEGER" property="exposuresSum"/>
+        <result column="touch_sum" jdbcType="INTEGER" property="touchSum"/>
+        <result column="watch_sum" jdbcType="INTEGER" property="watchSum"/>
+        <result column="play_duration_sum" jdbcType="INTEGER" property="playDurationSum"/>
+    </resultMap>
+
+    <!--获取监播数据列表（按年龄统计）-->
+    <resultMap id="MonitorDataAgeResultMap" type="com.xinchao.data.model.MonitorDataAge">
+        <result column="date" jdbcType="VARCHAR" property="date"/>
+        <result column="age" jdbcType="VARCHAR" property="age"/>
+        <result column="exposures_sum" jdbcType="INTEGER" property="exposuresSum"/>
+        <result column="touch_sum" jdbcType="INTEGER" property="touchSum"/>
+        <result column="watch_sum" jdbcType="INTEGER" property="watchSum"/>
+        <result column="play_duration_sum" jdbcType="INTEGER" property="playDurationSum"/>
+    </resultMap>
+
+
+    <!--插入监播数据-->
+    <insert id="insertMonitorDataAdvertisement" parameterType="com.xinchao.data.model.MonitorDataAdvertisement">
+        insert into frp_monitor_data_advertisement(advertisement_name, date, time, age, sex, exposures_sum, touch_sum, watch_sum, play_duration_sum, add_time)
+        values
+            (
+                #{monitorDataAdvertisement.advertisementName},#{monitorDataAdvertisement.date},
+                #{monitorDataAdvertisement.time},#{monitorDataAdvertisement.age},
+                #{monitorDataAdvertisement.sex},#{monitorDataAdvertisement.exposuresSum},
+                #{monitorDataAdvertisement.touchSum},#{monitorDataAdvertisement.watchSum},
+                #{monitorDataAdvertisement.playDurationSum},#{monitorDataAdvertisement.addTime}
+            )
+    </insert>
+
+    <!--批量插入监播数据-->
+    <insert id="insertMonitorDataAdvertisementBatch" parameterType="java.util.List">
+        insert into frp_monitor_data_advertisement(advertisement_name, date, time, age, sex, exposures_sum, touch_sum, watch_sum, play_duration_sum, add_time)
+        values
+        <foreach collection="monitorDataAdvertisementList" item="monitorDataAdvertisement" index="index" separator=",">
+            (
+                #{monitorDataAdvertisement.advertisementName},#{monitorDataAdvertisement.date},
+                #{monitorDataAdvertisement.time},#{monitorDataAdvertisement.age},
+                #{monitorDataAdvertisement.sex},#{monitorDataAdvertisement.exposuresSum},
+                #{monitorDataAdvertisement.touchSum},#{monitorDataAdvertisement.watchSum},
+                #{monitorDataAdvertisement.playDurationSum},#{monitorDataAdvertisement.addTime}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 获取监播数据广告列表（按日期统计） -->
+    <select id="listMonitorDataAdvertisementDate" resultMap="MonitorDataAdvertisementDateResultMap">
+        select date, advertisement_name, sum(exposures_sum) as exposures_sum, sum(touch_sum) as touch_sum, sum(watch_sum) as watch_sum, sum(play_duration_sum) as play_duration_sum
+        from frp_monitor_data_advertisement
+        where date = #{date}
+        group by advertisement_name
+    </select>
+
+    <!-- 获取监播数据广告列表（按时间统计） -->
+    <select id="listMonitorDataAdvertisementTime" resultMap="MonitorDataAdvertisementTimeResultMap">
+        select date,advertisement_name,time, sum(exposures_sum) as exposures_sum, sum(touch_sum) as touch_sum, sum(watch_sum) as watch_sum, sum(play_duration_sum) as play_duration_sum
+        from frp_monitor_data_advertisement
+        where date = #{date,jdbcType=VARCHAR}
+        group by advertisement_name, time
+    </select>
+
+    <!--获取监播数据列表（按日期统计）-->
+    <select id="listMonitorData" resultMap="MonitorDataResultMap">
+        select date, sum(exposures_sum) as exposures_sum, sum(touch_sum) as touch_sum, sum(watch_sum) as watch_sum, sum(play_duration_sum) as play_duration_sum
+        from frp_monitor_data_advertisement
+        where date = #{date,jdbcType=VARCHAR}
+    </select>
+
+    <!--获取监播数据列表（按年龄统计）-->
+    <select id="listMonitorDataAge" resultMap="MonitorDataAgeResultMap">
+        select date, age, sum(exposures_sum) as exposures_sum, sum(touch_sum) as touch_sum, sum(watch_sum) as watch_sum, sum(play_duration_sum) as play_duration_sum
+        from frp_monitor_data_advertisement
+        where date = #{date,jdbcType=VARCHAR}
+        group by age
+    </select>
+</mapper>

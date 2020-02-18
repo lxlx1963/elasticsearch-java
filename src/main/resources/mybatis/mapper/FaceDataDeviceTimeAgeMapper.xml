@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinchao.data.dao.FaceDataDeviceTimeAgeMapper">
+    <!--时间下的年龄段结果集-->
+    <resultMap id="DeviceTimeAgeResultMap" type="com.xinchao.data.model.dto.SingleDeviceTimeAgeDTO">
+        <result column="time" jdbcType="VARCHAR" property="time"/>
+        <result column="age" jdbcType="VARCHAR" property="age"/>
+        <result column="people_num" jdbcType="INTEGER" property="peopleNum"/>
+        <result column="people_time" jdbcType="INTEGER" property="peopleTime"/>
+    </resultMap>
+
+    <!--插入数据-->
+    <insert id="insertFaceDataDeviceTimeAge" parameterType="com.xinchao.data.model.FaceDataDeviceTimeAge">
+        insert into frp_face_data_device_time_age(date, device_code, residence_type, time, age, people_num, people_time, add_time)
+        values
+        (
+            #{faceDataDeviceTimeAge.date},#{faceDataDeviceTimeAge.deviceCode},
+            #{faceDataDeviceTimeAge.residenceType},#{faceDataDeviceTimeAge.time},
+            #{faceDataDeviceTimeAge.age},#{faceDataDeviceTimeAge.peopleNum},
+            #{faceDataDeviceTimeAge.peopleTime},#{faceDataDeviceTimeAge.addTime}
+        )
+    </insert>
+
+    <!--批量插入数据-->
+    <insert id="insertFaceDataDeviceTimeAgeBatch" parameterType="java.util.List">
+        insert into frp_face_data_device_time_age(date, device_code, residence_type, time, age, people_num, people_time, add_time)
+        values
+        <foreach collection="faceDataDeviceTimeAgeList" item="faceDataDeviceTimeAge" index="index" separator=",">
+            (
+                #{faceDataDeviceTimeAge.date},#{faceDataDeviceTimeAge.deviceCode},
+                #{faceDataDeviceTimeAge.residenceType},#{faceDataDeviceTimeAge.time},
+                #{faceDataDeviceTimeAge.age},#{faceDataDeviceTimeAge.peopleNum},
+                #{faceDataDeviceTimeAge.peopleTime},#{faceDataDeviceTimeAge.addTime}
+            )
+        </foreach>
+    </insert>
+
+    <!--获取时间下的年龄段列表-->
+    <select id="listDeviceTimeAge" resultMap="DeviceTimeAgeResultMap">
+        select time,age,sum(people_num) as people_num, sum(people_time) as people_time
+        from frp_face_data_device_time_age
+        where date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+        and  residence_type in
+        (
+        <foreach collection="residenceTypeList" item="residenceType" index="index" separator=",">
+            #{residenceType,jdbcType=VARCHAR}
+        </foreach>
+        )
+        group by time,age
+    </select>
+
+    <!--获取实际日期列表-->
+    <select id="listActualDate" resultType="java.lang.String">
+        select date
+        from frp_face_data_device_time_age
+        where date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+        and residence_type in
+        (
+        <foreach collection="residenceTypeList" item="residenceType" index="index" separator=",">
+            #{residenceType,jdbcType=VARCHAR}
+        </foreach>
+        )
+        group by date
+    </select>
+
+</mapper>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinchao.data.dao.FaceDataDateMapper">
+
+    <!--FaceDataDateDTOResultMap-->
+    <resultMap id="FaceDataDateDTOResultMap" type="com.xinchao.data.model.dto.FaceDataDateDTO">
+        <result column="people_num" jdbcType="INTEGER" property="peopleNum"/>
+        <result column="people_time" jdbcType="INTEGER" property="peopleTime"/>
+    </resultMap>
+
+    <!--插入人脸数据-->
+    <insert id="insertFaceDataDate" parameterType="com.xinchao.data.model.FaceDataDate">
+        insert into frp_face_data_date(date,people_num, people_time, add_time)
+        values
+            (
+                #{faceDataDate.date},#{faceDataDate.peopleNum},
+                #{faceDataDate.peopleTime},#{faceDataDate.addTime}
+            )
+    </insert>
+
+    <!--批量插入人脸数据-->
+    <insert id="insertFaceDataDateBatch" parameterType="java.util.List">
+        insert into frp_face_data_date(date,people_num, people_time, add_time)
+        values
+        <foreach collection="faceDataDateList" item="faceDataDate" index="index" separator=",">
+            (
+                #{faceDataDate.date},#{faceDataDate.peopleNum},
+                #{faceDataDate.peopleTime},#{faceDataDate.addTime}
+            )
+        </foreach>
+    </insert>
+
+    <!--获取人数人次Dto-->
+    <select id="getFaceDataDateDTO" resultMap="FaceDataDateDTOResultMap">
+        select sum(people_num) as people_num, sum(people_time) as people_time from frp_face_data_date
+        where date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+    </select>
+
+</mapper>

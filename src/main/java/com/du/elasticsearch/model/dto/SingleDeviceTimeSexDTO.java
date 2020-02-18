@@ -1,0 +1,56 @@
+package com.du.elasticsearch.model.dto;
+
+/**
+ * @author dxy
+ * @date 2019/3/9 10:25
+ */
+public class SingleDeviceTimeSexDTO {
+    /**
+     * 时间
+     */
+    private String time;
+    /**
+     * 性别
+     */
+    private String sex;
+    /**
+     * 人数
+     */
+    private Integer peopleNumSum;
+    /**
+     * 人次
+     */
+    private Integer peopleTimeSum;
+
+    public String getTime() {
+        return time;
+    }
+
+    public void setTime(String time) {
+        this.time = time;
+    }
+
+    public String getSex() {
+        return sex;
+    }
+
+    public void setSex(String sex) {
+        this.sex = sex;
+    }
+
+    public Integer getPeopleNumSum() {
+        return peopleNumSum;
+    }
+
+    public void setPeopleNumSum(Integer peopleNumSum) {
+        this.peopleNumSum = peopleNumSum;
+    }
+
+    public Integer getPeopleTimeSum() {
+        return peopleTimeSum;
+    }
+
+    public void setPeopleTimeSum(Integer peopleTimeSum) {
+        this.peopleTimeSum = peopleTimeSum;
+    }
+}

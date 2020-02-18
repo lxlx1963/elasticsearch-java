@@ -1,0 +1,47 @@
+#spring文件配置
+spring:
+  application:
+    name: frp-dashboard
+  elasticsearch:
+    jest:
+      uris: http://172.16.10.235:9200,http://172.16.10.235:9201,http://172.16.10.99:9202,http://172.16.10.99:9203
+      username: elastic
+      password: Xcm2018!
+      connection-timeout: 600s
+      read-timeout: 1000s
+  datasource:
+    url: jdbc:mysql://172.16.10.43:3306/xc_frp_test?characterEncoding=UTF-8&autoReconnect=true&useSSL=false
+    username: root
+    password: XcmDmp123456*@#%[{?
+    driver-class-name: com.mysql.jdbc.Driver
+  redis:
+    database: 3
+    host: 172.16.10.25
+    port: 6379
+    password: Xinchao123
+    timeout: 6000ms
+    jedis:
+      pool:
+        max-active: 50
+        max-wait: -1ms
+        max-idle: 8
+        min-idle: 0
+
+#log(使用logback)
+logging:
+  config: classpath:logback-spring.xml
+
+#mybatis
+mybatis:
+  config-location: classpath:mybatis/mybatis-config.xml
+  mapper-locations: classpath:mybatis/mapper/*.xml
+
+server:
+  servlet:
+    context-path: /frpdashboard
+  port: 8166
+
+#终端类型
+custom:
+  device-type: 3
+  limit-people-num: 150

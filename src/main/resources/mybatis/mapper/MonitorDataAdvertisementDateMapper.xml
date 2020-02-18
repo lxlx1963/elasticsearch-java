@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinchao.data.dao.MonitorDataAdvertisementDateMapper">
+    <!--广告观看次数结果集-->
+    <resultMap id="MonitorAdvertisementWatchResultMap" type="com.xinchao.data.model.dto.MonitorAdvertisementWatchDTO">
+        <result column="advertisement_name" jdbcType="VARCHAR" property="advertisementName"/>
+        <result column="watch_sum" jdbcType="INTEGER" property="watchSum"/>
+    </resultMap>
+
+    <!--插入数据-->
+    <insert id="insertMonitorDataAdvertisementDate" parameterType="com.xinchao.data.model.MonitorDataAdvertisementDate">
+        insert into frp_monitor_data_advertisement_date_advertisement_date(advertisement_name, date,exposures_sum, touch_sum, watch_sum, play_duration_sum, add_time)
+        values
+            (
+                #{monitorDataAdvertisementDate.advertisementName},#{monitorDataAdvertisementDate.date},#{monitorDataAdvertisementDate.exposuresSum},
+                #{monitorDataAdvertisementDate.touchSum},#{monitorDataAdvertisementDate.watchSum},
+                #{monitorDataAdvertisementDate.playDurationSum},#{monitorDataAdvertisementDate.addTime}
+            )
+    </insert>
+
+    <!--批量插入数据-->
+    <insert id="insertMonitorDataAdvertisementDateBatch" parameterType="java.util.List">
+        insert into frp_monitor_data_advertisement_date(advertisement_name, date,exposures_sum, touch_sum, watch_sum, play_duration_sum, add_time)
+        values
+        <foreach collection="monitorDataAdvertisementDateList" item="monitorDataAdvertisementDate" index="index" separator=",">
+            (
+                #{monitorDataAdvertisementDate.advertisementName},#{monitorDataAdvertisementDate.date},#{monitorDataAdvertisementDate.exposuresSum},
+                #{monitorDataAdvertisementDate.touchSum},#{monitorDataAdvertisementDate.watchSum},
+                #{monitorDataAdvertisementDate.playDurationSum},#{monitorDataAdvertisementDate.addTime}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 获取广告观看次数列表-->
+    <select id="listMonitorAdvertisementWatch" resultMap="MonitorAdvertisementWatchResultMap">
+        select advertisement_name,sum(watch_sum) as watch_sum
+        from frp_monitor_data_advertisement_date
+        where date in
+        (
+            <foreach collection="dateList" item="date" index="index" separator=",">
+                #{date,jdbcType=VARCHAR}
+            </foreach>
+        )
+        group by advertisement_name
+        order by watch_sum desc
+        limit #{topSize};
+    </select>
+
+    <!--获取实际日期列表-->
+    <select id="listActualDate" resultType="java.lang.String">
+        select date
+        from frp_monitor_data_advertisement_date
+        where date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+        group by date
+    </select>
+</mapper>

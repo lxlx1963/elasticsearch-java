@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinchao.data.dao.FaceDataDeviceSexMapper">
+    <!--人数人次总数性别结果集-->
+    <resultMap id="FaceDataSexSumResultMap" type="com.xinchao.data.model.dto.FaceDataSexSumDTO">
+        <result column="sex" jdbcType="VARCHAR" property="sex"/>
+        <result column="people_num_sum" jdbcType="INTEGER" property="peopleNumSum"/>
+        <result column="people_time_sum" jdbcType="INTEGER" property="peopleTimeSum"/>
+    </resultMap>
+
+    <!--插入数据-->
+    <insert id="insertFaceDataDeviceSex" parameterType="com.xinchao.data.model.FaceDataDeviceSex">
+        insert into frp_face_data_device_sex(date, device_code, residence_type, sex, people_num, people_time, add_time)
+        values
+        (
+            #{faceDataDeviceSex.date},#{faceDataDeviceSex.deviceCode},
+            #{faceDataDeviceSex.residenceType},#{faceDataDeviceSex.sex},
+            #{faceDataDeviceSex.peopleNum},#{faceDataDeviceSex.peopleTime},
+            #{faceDataDeviceSex.addTime}
+        )
+    </insert>
+
+    <!--批量插入数据-->
+    <insert id="insertFaceDataDeviceSexBatch" parameterType="java.util.List">
+        insert into frp_face_data_device_sex(date, device_code, residence_type, sex, people_num, people_time, add_time)
+        values
+        <foreach collection="faceDataDeviceSexList" item="faceDataDeviceSex" index="index" separator=",">
+            (
+                #{faceDataDeviceSex.date},#{faceDataDeviceSex.deviceCode},
+                #{faceDataDeviceSex.residenceType},#{faceDataDeviceSex.sex},
+                #{faceDataDeviceSex.peopleNum},#{faceDataDeviceSex.peopleTime},
+                #{faceDataDeviceSex.addTime}
+            )
+        </foreach>
+    </insert>
+
+    <!-- 获取人数人次总数性别列表 -->
+    <select id="listFaceDataSexSum" resultMap="FaceDataSexSumResultMap">
+        select sex, sum(people_num) as people_num_sum, sum(people_time) people_time_sum
+        from frp_face_data_device_sex
+        where date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+        and  residence_type in
+        (
+        <foreach collection="residenceTypeList" item="residenceType" index="index" separator=",">
+            #{residenceType,jdbcType=VARCHAR}
+        </foreach>
+        )
+        group by sex;
+    </select>
+
+    <!--获取实际日期列表-->
+    <select id="listActualDate" resultType="java.lang.String">
+        select date
+        from frp_face_data_device_sex
+        where date in
+        (
+        <foreach collection="dateList" item="date" index="index" separator=",">
+            #{date,jdbcType=VARCHAR}
+        </foreach>
+        )
+        and residence_type in
+        (
+        <foreach collection="residenceTypeList" item="residenceType" index="index" separator=",">
+            #{residenceType,jdbcType=VARCHAR}
+        </foreach>
+        )
+        group by date
+    </select>
+
+</mapper>
